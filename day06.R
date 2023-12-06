@@ -1,13 +1,9 @@
-data06 <- gsub("\\D*\\s+", " ", readLines("Input/day06.txt"))
-d <- sapply(strsplit(data06, " "), \(x) as.integer(x[-1]))
+data06 <- read.table("Input/day06.txt", sep = "")[,-1]
 
-break_record <- \(d) {
-  det <- sqrt(d[1]^2 / 4 - d[2])
-  floor(d[1] / 2 + det) - ceiling(d[1] / 2 - det) + 1
-}
+mv_bot <- \(d) sqrt(d[1]^2/4 - d[2]) |> (\(.) floor(d[1]/2 + .) - ceiling(d[1]/2 - .) + 1)()
 
 # part1-----
-prod(apply(d, 1, break_record))
+prod(apply(data06, 2, mv_bot))
 
 # part2------
-break_record(as.numeric(apply(d, 2, paste, collapse = "")))
+mv_bot(as.numeric(apply(data06, 1, paste, collapse = "")))
