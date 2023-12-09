@@ -1,14 +1,9 @@
 data09 <- lapply(strsplit(readLines("Input/day09.txt"), " "), as.integer)
 
-f <- function(x)  {
-  
-  l <- c(list(x[c(1, length(x))]), lapply(seq_along(x[-1]), \(d) diff(x, difference = d)[c(1, length(x) - d)]))
-  l <- l[sapply(l, \(x) any(x != 0))]
-  
-  c(sum(sapply(l, \(x) x[2])), sum(sapply(seq_along(l), \(k) l[[k]][1] * (-1)^(k+1))))
-  
+extend <- function(x, n = length(x))  {
+  l <- sapply(1:(n - 1L), \(d) diff(x, d = d)[c(n - d, 1L)] * c(1L, (-1L)^d))
+  rowSums(l) + x[c(n, 1L)]
 }
 
-
 #part1 and 2--------
-rowSums(sapply(data09, f))
+rowSums(sapply(data09, extend))
