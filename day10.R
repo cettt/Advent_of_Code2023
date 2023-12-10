@@ -36,6 +36,7 @@ find_adj <- function(k) {
 
 lookup <- sapply(seq_along(gr), find_adj)
 outside <- which(sapply(lookup, length) < 4L)
+cur <- outside
 
 while (length(cur) > 0L) {
   nxt <- unique(unlist(lookup[cur]))
