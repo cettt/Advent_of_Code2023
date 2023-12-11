@@ -3,7 +3,7 @@
 
 # Summary
 
-Advent of Code is annual event which consists of daily programming
+Advent of Code is an annual event which consists of daily programming
 puzzles. The event is hosted by [Eric Wastl](http://was.tl/) and takes
 place between December 1st and December 25th.
 
