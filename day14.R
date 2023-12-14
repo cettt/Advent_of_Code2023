@@ -9,14 +9,9 @@ find_length <- function(x) {
   sapply(seq_along(x), \(k) Position(\(y) y == "#", c(x[k:((cl[k] - 1L) * 100L + 1L)], "#")) - 2L)
 }
 
-find_idx <- function(n, rot) {
-  delta <- c(-1L, -100L, 1L, 100L)[rot]
-  lapply(seq_along(n), \(k) if (n[k] > 0L) seq.int(k, by = delta, length.out = n[k] + 1L)[-1])
-}
-
 #for each rotation of the field compute the maximum number of fields a stone could roll forward
 n_list <- lapply(mat_rot, find_length) 
-idx_list <- lapply(n_list, \(n) lapply(seq_along(n), \(k) if (n[k] > 0L) (k - n[k]):(k - 1L)))
+idx_list <- lapply(n_list, \(n) lapply(seq_along(n), \(k) if (n[k] > 0L) k - 1:n[k]))
 
 
 tilt <- function(x_int, rot = 1L) {
@@ -44,13 +39,8 @@ for (k in 1:200) {
     if (cyc > 0L)  {
       counter <- if (tmp[k - cyc] == tmp[k]) counter + 1L else 0L
     } else cyc <- diff(which(tmp == tmp[k]))[1]
-    
     if (counter > 9L) break
-  } else {
-    cyc_counter <- 0L
-    cyc <- 0L
-  }
+  } else cyc <- 0L
 }
 
 load_vec[k - cyc + which((1e9 - (k - cyc + 1L):k) %% cyc == 0L)]
-
