@@ -42,10 +42,9 @@ springs <- lapply(c(1L, 5L), \(n) lapply(data12, map_springs, n = n))
 
 #part 1 and 2--------
 res <- c(0L, 0L)
-for (k in seq_along(springs2)) {
+for (k in seq_along(data12)) {
   for (p in 1:2){
     lookup <- rep.int(-1L, 1e5)
-    x <- springs2[[k]]
     df0 <- springs[[p]][[k]][[1]]
     n0 <-  springs[[p]][[k]][[2]]
     res[p] <- res[p] + count_pos(1L, 1L)
