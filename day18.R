@@ -1,16 +1,13 @@
 x <- read.table("Input/day18.txt", comment.char = "", sep = " ")
 dir <- c(R = 1, D = 1i, L = -1, U = -1i)
 
-
 dig <- function(dirs, lngs) {
 
-  l <- sum(lngs) + 1L
-  cur <- 0 + 0i
+  l <- sum(lngs) #length of boundary
+  bnd <- cumsum(c(0 + 0i, dir[dirs] * lngs)) # coordinates of boundary 
 
-  for (k in seq_along(dirs)) cur <- c(cur, tail(cur, 1) + lngs[k] * dir[dirs[k]])
-  
-  ar <- -sum((Im(cur)[-length(cur)] + Im(cur[-1])) * diff(Re(cur))) / 2L # Shoelace formula
-  sprintf("%.f", ar + 1L + (l - 1L) / 2L) #Prick's theorem
+  ar <- sum((Im(bnd)[-length(bnd)] + Im(bnd[-1])) * diff(Re(bnd))) / 2L # Shoelace formula
+  sprintf("%.f", abs(ar) + 1L + l / 2L) #Pick's theorem
 }
 
 #part1-----
