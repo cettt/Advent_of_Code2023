@@ -1,20 +1,20 @@
-x <- read.table("Input/day18.txt", comment.char = "", sep = " ")
-dir <- c(R = 1, D = 1i, L = -1, U = -1i)
+data18 <- read.table("Input/day18.txt", comment.char = "", sep = " ")
+dir_vec <- c(R = 1, D = 1i, L = -1, U = -1i)
 
 dig <- function(dirs, lngs) {
 
-  l <- sum(lngs) #length of boundary
-  bnd <- cumsum(c(0 + 0i, dir[dirs] * lngs)) # coordinates of boundary 
+  bnd <- cumsum(c(0 + 0i, dir_vec[dirs] * lngs)) # coordinates of boundary 
 
-  ar <- sum((Im(bnd)[-length(bnd)] + Im(bnd[-1])) * diff(Re(bnd))) / 2L # Shoelace formula
-  sprintf("%.f", abs(ar) + 1L + l / 2L) #Pick's theorem
+  ar <- sum(Im(bnd)[-1] * diff(Re(bnd))) # Shoelace formula for rectangles
+  sprintf("%.f", abs(ar) + 1L + sum(lngs) / 2L) #Pick's theorem
 }
 
 #part1-----
-dig(x[,1], x[,2])
+dig(data18[, 1L], data18[, 2L])
 
 #part2------------
-x[,4] <- names(dir)[as.integer(substr(x[,3], 8, 8)) + 1L]
-x[,5] <- strtoi(substr(x[,3], 3, 7), base = 16)
+data18[, 4L] <- names(dir_vec)[as.integer(substr(data18[, 3L], 8L, 8L)) + 1L]
+data18[, 5L] <- strtoi(substr(data18[, 3L], 3L, 7L), base = 16L)
 
-dig(x[,4], x[,5])
+dig(data18[, 4L], data18[, 5L])
+
