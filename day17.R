@@ -1,64 +1,52 @@
-x <- unname(unlist(read.fwf("Input/day17.txt", widths = rep(1, 141))))
-n2 <- length(x)
+data17 <- unname(unlist(read.fwf("Input/day17.txt", widths = rep(1L, 141L))))
+n2 <- length(data17)
 n <- as.integer(sqrt(n2))
 
-map_k <- function(k, idx) {
+find_k <- function(k, mn = 1L, mx = 3L, idx = seq_len(mx)) {
   if (k >= n2) {# right/left
-    k - n2 + c(-idx[k %% n >= idx], idx[k %% n + idx <= n - 1L])
+    adj1 <- k - n2 - idx[k %% n >= idx]
+    adj2 <- k - n2 + idx[k %% n + idx <= n - 1L]
   } else {
-    k + n2 + c(-idx[k %/% n >= idx], idx[k %/% n + idx <= n - 1L]) * n
+    adj1 <- k + n2 - idx[k %/% n >= idx] * n
+    adj2 <- k + n2 + idx[k %/% n + idx <= n - 1L] * n
   }
+  
+  sc1 <- cumsum(c(0L, data17[adj1 %% n2 + 1L]))[-seq_len(mn)]
+  sc2 <- cumsum(c(0L, data17[adj2 %% n2 + 1L]))[-seq_len(mn)]
+  list(c(c(0L, adj1)[-seq_len(mn)], c(0L, adj2)[-seq_len(mn)]), c(sc1, sc2))
 }
 
-
-map_hl <- function(k, idx) {
-  idx2 <- seq_len(max(idx))
-  if (k >= n2) {#up/down
-    res1 <- cumsum(x[(k - n2 - idx2 + 1L)[k %% n >= idx2]]) 
-    res2 <- cumsum(x[(k - n2 + idx2 + 1L)[k %% n + idx2 <= n - 1L]])
-  } else {
-    res1 <- cumsum(x[k - idx2[k %/% n - idx2 >= 0L    ] * n + 1L]) 
-    res2 <- cumsum(x[k + idx2[k %/% n + idx2 <= n - 1L] * n + 1L])
-  }
+find_shortest_path <- function(mn, mx) {
   
-  if (min(idx) > 1) {
-    return(c(res1[-seq_len(min(idx) - 1L)], res2[-seq_len(min(idx) - 1L)])) 
-  }
+  lookup <- sapply(seq_len(n2 * 2L) - 1L, \(k) find_k(k, mn, mx))
+  adj <- lookup[1L, ]
+  heat_loss <- lookup[2L, ]
   
-  else return(c(res1, res2))
-}
-
-
-find_shortest_path <- function(idx = 1:3) {
-  
-  lookup <- sapply(seq_len(n2 * 2L) - 1L, \(k) map_k( k, idx))
-  hl     <- sapply(seq_len(n2 * 2L) - 1L, \(k) map_hl(k, idx))
-  
-  q <- collections::priority_queue(c(0L, n2), priorities = 0L)
+  q <- collections::priority_queue(c(1L, n2 + 1L), priorities = 0L)
   
   dmg <- c(rep.int(1e5L, 2L*n2))
   dmg[c(0L, n2) + 1L] <- 0L
   
-  while (q$size() > 0) {
+  while (q$size() > 0L) {
     cur <- q$pop()
-    cur_dmg <- dmg[cur + 1L]
-    lu <- lookup[[cur + 1L]]
-    hl_lu <- hl[[cur + 1L]]
+    if (cur %% n2 == 0L) break
+    cur_dmg <- dmg[cur]
+    lu <- adj[[cur]] + 1L
+    hl_lu <- heat_loss[[cur]]
     
-    for (k in seq_along(lookup[[cur + 1L]])) {
+    for (k in seq_along(lu)) {
       nd <- cur_dmg + hl_lu[k]
-      if (dmg[lu[k] + 1L] > nd) {
-        dmg[lu[k] + 1L] <- nd
+      if (dmg[lu[k]] > nd) {
+        dmg[lu[k]] <- nd
         q$push(lu[k], priority = -nd)
       }
     }
   }
-  return(min(dmg[(n2 - 1L) + 0:1*n2 + 1L]))
+  return(min(dmg[n2 + 0:1 * n2]))
 }
 
 # part 1-----------
-find_shortest_path()
+find_shortest_path(1L, 3L)
 
 # part 2---------
-find_shortest_path(idx = 4:10)
-
+find_shortest_path(4L, 10L)
