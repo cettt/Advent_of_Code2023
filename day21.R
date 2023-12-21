@@ -1,35 +1,41 @@
-x <- unname(unlist(read.fwf("Input/day21.txt", widths = rep(1, 131), comment.char = "")))
 n <- 131L
+data21 <- unlist(read.fwf("Input/day21.txt", widths = rep(1L, n), com = ""))
 
+gr <- unname(which(data21 != "#")) # graph
 
-gr <- which(x != "#")
-
-find_adj <- function(k, n) {
+find_adj <- function(k, m) {
   m <- k %% n
-  res <- k + c(if (k > n) -n, if (k < (n^2 - n)) n, if (m != 1) -1, if (m != 0) 1)
-  res[res %in% gr]
+  res <- k + c(if (k > n) -n, if (k < n * (n - 1L)) n, if (m != 1L) -1L, if (m != 0L) 1L)
+  fld <- data21[res]
+  res[fld != "#"]
 }
 
+lookup <- lapply(seq_along(data21), find_adj)
 
-lookup <- sapply(seq_along(x), find_adj, n = n)
-
-cur <- which(x == "S")
-
-for (k in 1:201) {
-  cur <- unique(unlist(lookup[cur]))
-  if (length(cur) == length(gr)) break
+walk <- function(stp, strt) {
+  cur <- strt
+  for (k in 1:stp) cur <- unique(unlist(lookup[cur]))
+  cur
 }
 
-length(cur)
-
+length(walk(64L, which(data21 == "S")))
 
 #part2----------
-# three extensions
-x <- as.matrix(read.fwf("Input/day21.txt", widths = rep(1, 131), comment.char = ""))
+cur2 <- walk(132L, which(data21 == "S"))
+n2 <- length(cur2) # number of plots in starting field after even number of steps
+n1 <- length(walk(1L, cur2)) # number of plots in starting field after odd number of steps
 
-x2 <- as.character(do.call(rbind, lapply(1:3, \(y) cbind(x, x, x))))
+N <- 26501365L %/% n  #202300 :D
 
-gr2 <- which(x2 != "#")
+n_even <- N^2
+n_odd <- (N - 1)^2
 
+tmp  <- sapply(c(66L,  n^2 - 65L, 65*n + 1L, 66*n), \(x) length(walk(130L, x)))
+corner <- c(1L, n, n*n + 1L - n, n*n) # corner tiles
 
-26501365 / (5 * 11)
+tmp2 <- sapply(corner, \(x) length(walk(64L, x)))
+tmp3 <- sapply(corner, \(x) length(walk(64L + 131L, x)))
+
+res <- c(n_even * n2, n_odd * n1, sum(tmp), (N - 1) * sum(tmp3), N * sum(tmp2))
+
+sprintf("%.f", sum(res))
