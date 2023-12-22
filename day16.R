@@ -1,61 +1,80 @@
-x <-  as.matrix(read.fwf("Input/day16.txt", width = rep(1, 110)))
-mir <- apply(which(x != ".", arr.ind = TRUE), 1, \(x) x[2] + x[1] * 1i)
+data16 <-  as.matrix(read.fwf("Input/day16.txt", width = rep(1, 110)))
 
-names(mir) <- x[x!= "."]
+mir <- apply(which(data16 != ".", arr.ind = TRUE), 1, \(x) x[2] + x[1] * 1i)
+names(mir) <- data16[data16!= "."]
+splt_mir <- mir[names(mir) %in% c("|", "-")]
 
 
-energize <- function(beam, dir) {
-  beams_dir <- list(c(beam, dir))
-  en_vec <- beam + dir
-  hist <- complex()
+energize <- function(beam, dir = c(-1, 1) * if (isTRUE(splt == "|")) 1i else 1, splt = NULL) {
   
+  en_vec <- beam
+  fin <- complex()
+  
+  if (!is.null(splt)) {
+    beams_dir <- list(c(beam, dir[1]), c(beam, dir[2]))
+  } else {
+    beams_dir <- list(c(beam, dir))
+  }
+  
+  
+  hist <- beam
   
   while (length(beams_dir)) {
+    run <- TRUE
     beam <- beams_dir[[1]][1]
     dir <- beams_dir[[1]][2]
     beams_dir <- beams_dir[-1]
     
-    mir2 <- if (Re(dir) != 0) mir[Im(mir) == Im(beam)] else mir[Re(mir) == Re(beam)]
-    
-    dist <- Position(\(x) x %in% mir2, beam + (seq_len(110)) * dir, nomatch = NA_integer_)
-    
-    if (is.na(dist)) {#if we hit a boundary
-      en_vec <- c(en_vec, beam + (seq_len(110)) * dir)
+    while (run) {
+      mir2 <- if (Re(dir) != 0) mir[Im(mir) == Im(beam)] else mir[Re(mir) == Re(beam)]
+      dist <- Position(\(x) x %in% mir2, beam + (seq_len(110)) * dir, nomatch = NA_integer_)
+      run <- FALSE
       
-    } else { # if we don't hit a boundary
-      new_beam <- beam + (dist)*dir # next mirror
-      en_vec <- c(en_vec, beam + seq_len(dist) * dir) #energize
-      new_mir <- names(mir2[mir2 == new_beam])
-      
-      if (new_mir %in% c("\\", "/")) { #check for mirrors
-        new_dir <- (Im(dir) + Re(dir) * 1i) * if (new_mir == "\\") 1 else -1
-        beams_dir <- c(beams_dir, list(c(new_beam, new_dir)))
+      if (is.na(dist)) {#if we hit a boundary
+        en_vec <- c(en_vec, beam + (seq_len(110)) * dir)
         
-      } else if ((new_mir == "-" & Re(dir) != 0) | (new_mir == "|" & Im(dir) != 0)) {
-        #check for non-splitting splinter
-        beams_dir <- c(beams_dir, list(c(new_beam, dir)))
-      } else if (all(hist != new_beam)) {
-        hist <- c(hist, new_beam)
-        beams_dir <- c(beams_dir, list(c(new_beam, 1i*dir)), list(c(new_beam, -1i*dir)))
+      } else { # if we don't hit a boundary
+        en_vec <- c(en_vec, beam + seq_len(dist) * dir) #energize
+        beam <- beam + (dist)*dir # next mirror
+        new_mir <- names(mir2[mir2 == beam])
+        
+        if (new_mir %in% c("\\", "/")) { #check for mirrors
+          dir <- (Im(dir) + Re(dir) * 1i) * if (new_mir == "\\") 1 else -1
+          run <- TRUE
+        } else if (all(hist != beam)) {
+          hist <- c(hist, beam)
+          if ((new_mir == "-" & Re(dir) != 0) | (new_mir == "|" & Im(dir) != 0)) {
+            run <- TRUE
+          } else {
+            fin <- c(fin, beam)
+            if (is.null(splt)) {
+              while (length(beam)) {
+                hist <- c(hist, beam[1])
+                lst <- splt_list[beam[1] == splt_mir][[1]]
+                en_vec <- c(en_vec, lst[[2]])
+                beam <- c(beam[-1], setdiff(lst[[1]], hist))
+              }
+            }
+          }
+        }
       }
     }
   }
   
   a <- unique(en_vec)
-  length(a[Re(a) > 0 & Re(a) < 111 & Im(a) > 0 & Im(a) < 111])
+  if (is.null(splt)) return(sum(Re(a) > 0 & Re(a) < 111 & Im(a) > 0 & Im(a) < 111))
+  
+  list(fin, a[Re(a) > 0 & Re(a) < 111 & Im(a) > 0 & Im(a) < 111])
 }
 
-all_pos <- rbind(
-  cbind(1:110 * 1i, 1),
-  cbind(111 + 1:110 * 1i, -1),
-  cbind(1:110, 1i),
-  cbind(1:110 + 111*1i, -1i)
-)
 
-res <- apply(all_pos, 1, \(x) energize(x[1], x[2]))
+splt_list <- lapply(seq_along(splt_mir), \(k) energize(splt_mir[k], splt = names(splt_mir)[k]))
 
-#part 1---------
+#part1-------
+bnds <- cbind(c(1:110 * 1i, 1:110, 111i + 1:110, 111 + 1:110*1i), rep(c(1, 1i, -1i, -1), each = 110))
+
+res <- apply(bnds, 1, \(x) energize(x[1], dir = x[2]))
+
 res[1]
 
-#part2------
 max(res)
