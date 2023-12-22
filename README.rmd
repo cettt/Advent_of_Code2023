@@ -13,9 +13,11 @@ Advent of Code is an annual event which consists of daily programming puzzles.
 The event is hosted by [Eric Wastl](http://was.tl/) and takes place between December 1st and December 25th.
 
 I solved all puzzles using R (version 4.3.1.) Most of the solutions only require base packages.
-For Day 08 I borrowed the function `Lcm` from the `pracma` package.
+For Days 08 and 20 I borrowed the function `Lcm` from the `pracma` package.
 
-I try to go for fast and short solutions which means that the resulting 
+For Day 17 I used the `collections` library which provides high performance container types (in particular priority queues).
+
+I try to go for fast and short (sometimes a bit hackey) solutions which means that the resulting 
 code is not always as easy to read as it could be.
 
 
