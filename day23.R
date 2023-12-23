@@ -38,43 +38,46 @@ solve_day23 <- function(part1 = TRUE) {
   splt <- c(min(gr), which(sapply(lookup, length) > 2L), max(gr))
   
   tar <- length(splt)
-  gr2 <- lapply(splt[-tar], bfs, lookup = lookup, splt = splt) #compressed graph
+  gr2 <- lapply(splt, bfs, lookup = lookup, splt = splt) #compressed graph
+  tar2 <- which(sapply(gr2, \(x) any(x[1,] == tar)))
+  d2 <- gr2[[tar2]][2L, gr2[[tar2]][1,] == tar]
+  strt <- gr2[[1]][1]
+  d1 <- gr2[[1]][2]
   
   check_valid <- function(pth) { #check if there is still a way to the target
-    cur <- pth[1]
-    j <- 1L
-    while(j <= length(cur)) {
-      nxt <- gr2[[cur[j]]][1L, ]
-      if (any(nxt == tar)) return(TRUE)
-      nxt <- nxt[!nxt %in% c(pth, cur)]
-      cur <- c(cur, nxt)
+    j <- length(pth)
+    while(j <= length(pth)) {
+      nxt <- gr2[[pth[j]]][1L, ]
+      nxt <- nxt[!nxt %in% pth]
+      pth <- c(pth, nxt)
       j <- j + 1L
     }
+    if (all(c(tar2, 3L, 9L, 29L, 34L) %in% pth)) return(TRUE) #TODO replcae my longest path nodes
     return(FALSE)
   }
   
   e <- environment()
   e$pth <- integer()
   
-  find_longest_way <- function(cur = 1L, lng = 0L) {
+  find_longest_way <- function(cur = strt) {
     
-    if (cur == tar) return(0L)
+    if (cur == tar2) return(0L)
     
-    if (length(e$pth) > 10L) if (!check_valid(c(cur, e$pth))) return(-1e4L)
+    if (!part1) if (length(e$pth) > 10L) if (!check_valid(c(e$pth, cur))) return(-1e4L)
     
     e$pth <<- c(cur, e$pth)
     nxt <- gr2[[cur]]
     nxt <- nxt[, !nxt[1,] %in% e$pth, drop = FALSE]
     
     if (ncol(nxt) != 0L) {
-      res <- max(nxt[2,] + sapply(nxt[1L,], \(x) find_longest_way(x)))
+      res <- max(nxt[2L, ] + sapply(nxt[1L,], \(x) find_longest_way(x)))
     } else res <- -1e4L
     
-    e$pth <<- e$pth[-1] 
+    e$pth <<- e$pth[-1L] 
     return(res)
   }
   
-  find_longest_way()
+  find_longest_way() + d1 + d2
 }
 
 
@@ -82,4 +85,4 @@ solve_day23 <- function(part1 = TRUE) {
 solve_day23(part1 = TRUE)
 
 #part2------
-solve_day23(part1 = FALSE) #takes 3.1 minutes
+solve_day23(part1 = FALSE) #takes < 2 minutes
