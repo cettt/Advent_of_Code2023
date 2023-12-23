@@ -16,7 +16,7 @@ find_adj <- function(k, part1 = TRUE) {
 }
 
 
-bfs <- function(cur0) { #bfs 
+bfs <- function(cur0, lookup, splt) { #bfs 
   res <- matrix(integer(), nrow = 2)
   for (cur in lookup[[cur0]]) {
     pth <- c(cur0, cur)
@@ -34,26 +34,43 @@ bfs <- function(cur0) { #bfs
 } 
 
 solve_day23 <- function(part1 = TRUE) {
-  lookup <- lapply(seq_along(data23), find_adj, part1 = part1)
+  lookup <- lapply(seq_along(data23), \(k) find_adj(k, part1 = part1))
   splt <- c(min(gr), which(sapply(lookup, length) > 2L), max(gr))
   
   tar <- length(splt)
-  gr2 <- lapply(splt[-tar], bfs) #compressed graph
+  gr2 <- lapply(splt[-tar], bfs, lookup = lookup, splt = splt) #compressed graph
   
+  check_valid <- function(pth) { #check if there is still a way to the target
+    cur <- pth[1]
+    j <- 1L
+    while(j <= length(cur)) {
+      nxt <- gr2[[cur[j]]][1L, ]
+      if (any(nxt == tar)) return(TRUE)
+      nxt <- nxt[!nxt %in% c(pth, cur)]
+      cur <- c(cur, nxt)
+      j <- j + 1L
+    }
+    return(FALSE)
+  }
   
-  find_longest_way <- function(cur = 1L, pth = integer(), lng = 0L) {
+  e <- environment()
+  e$pth <- integer()
+  
+  find_longest_way <- function(cur = 1L, lng = 0L) {
     
-    if (cur == tar) return(lng)
-    if (31L %in% pth & 26L %in% pth & cur != 33L) return(0L)
+    if (cur == tar) return(0L)
     
+    if (length(e$pth) > 10L) if (!check_valid(c(cur, e$pth))) return(-1e4L)
+    
+    e$pth <<- c(cur, e$pth)
     nxt <- gr2[[cur]]
-    nxt <- nxt[, !nxt[1,] %in% pth, drop = FALSE]
-    if (tar %in% nxt[1,]) nxt <- nxt[, nxt[1,] == tar, drop = FALSE]
+    nxt <- nxt[, !nxt[1,] %in% e$pth, drop = FALSE]
     
     if (ncol(nxt) != 0L) {
-      res <- max(apply(nxt, 2, \(x) find_longest_way(x[1], c(pth, cur), lng + x[2])))
-    } else res <- 0L
+      res <- max(nxt[2,] + sapply(nxt[1L,], \(x) find_longest_way(x)))
+    } else res <- -1e4L
     
+    e$pth <<- e$pth[-1] 
     return(res)
   }
   
@@ -65,4 +82,4 @@ solve_day23 <- function(part1 = TRUE) {
 solve_day23(part1 = TRUE)
 
 #part2------
-solve_day23(part1 = FALSE) #takes 10 minutes
+solve_day23(part1 = FALSE) #takes 3.1 minutes
